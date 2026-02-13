@@ -56,6 +56,9 @@
         .player {
             padding: 5px;
             margin: 3px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         /* Scrollbar styling */
@@ -97,7 +100,13 @@
                     
                     if (data.players && data.players.length > 0) {
                         listEl.innerHTML = data.players
-                            .map(player => `<div class="player">• ${player}</div>`)
+                            .map(player => {
+                                const headUrl = data.heads[player.name] || '';
+                                return `<div class="player">
+                                    <img src="${headUrl}" alt="${player.name}">
+                                    <span>• ${player.name}</span>
+                                </div>`;
+                            })
                             .join('');
                     } else {
                         listEl.innerHTML = '<div class="player">No players online</div>';

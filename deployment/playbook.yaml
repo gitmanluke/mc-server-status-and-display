@@ -1,0 +1,51 @@
+---
+- name: deploy server
+  hosts: all
+
+  tasks:
+  - name: Update apt cache and install required packages
+    apt:
+      name:
+        - git
+        - python3-venv
+        - unclutter
+      state: present
+      update_cache: yes
+    become: true
+
+  - name: Clone Git Repo
+    ansible.builtin.git:
+      repo: 'https://github.com/gitmanluke/mc-server-status-and-display.git'
+      dest: /home/pi/minecraft-monitor
+
+  - name: Deploy systemd service
+    template:
+      src: templates/minecraft-monitor_service.j2
+      dest: /etc/systemd/system/minecraft-monitor.service
+    become: true
+
+  - name: Enable and start service
+    systemd:
+      name: minecraft-monitor
+      enabled: yes
+      state: started
+      daemon_reload: yes
+    become: true
+
+  - name: Create Python virtual environment
+    command: python3 -m venv /home/pi/minecraft-monitor/venv
+    args:
+      creates: "/home/pi/minecraft-monitor/venv/bin/activate"
+
+  - name: Install Python packages from requirements.txt
+    pip:
+      requirements: /home/pi/minecraft-monitor/requirements.txt
+      virtualenv: /home/pi/minecraft-monitor/venv
+
+  - name: Configure Chromium kiosk autostart
+    lineinfile:
+      path: /home/pi/.config/lxsession/LXDE-pi/autostart
+      line: '@chromium-browser --kiosk --noerrdialogs --disable-infobars --no-first-run --check-for-update-interval=31536000 http://localhost:8000'
+      create: yes
+    become: true
+    become_user: pi

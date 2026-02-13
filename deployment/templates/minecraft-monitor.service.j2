@@ -1,0 +1,11 @@
+[Unit]
+Description=Minecraft Server Monitor
+
+[Service]
+Environment="SERVER_ADDRESS={{ server_ip }}"
+ExecStart={{ venv_path }}/bin/uvicorn app:app --host 0.0.0.0
+WorkingDirectory={{ app_path }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

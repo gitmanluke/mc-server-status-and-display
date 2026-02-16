@@ -76,7 +76,7 @@
     </style>
 </head>
 <body>
-    <div class="header">hypixel.net</div>
+    <div class="header">Server Address</div>
     <div class="status" id="status">● CHECKING...</div>
     <div class="player-count" id="playerCount"></div>
     <div class="players" id="playerList"></div>
@@ -90,6 +90,7 @@
                 const statusEl = document.getElementById('status');
                 const countEl = document.getElementById('playerCount');
                 const listEl = document.getElementById('playerList');
+                const addressEl = document.getElementById('address');
                 
                 if (data.online) {
                     statusEl.textContent = '● ONLINE';

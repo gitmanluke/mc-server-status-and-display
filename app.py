@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from mcstatus import JavaServer
 import asyncio
 import httpx
 import requests
@@ -8,7 +9,7 @@ import json
 import time
 import os
 
-SERVER_ADDRESS = os.getenv('SERVER_ADDRESS', '24.60.155.55:25565')  # default fallback
+SERVER_ADDRESS = os.getenv('SERVER_ADDRESS', 'hypixel.net')  # default fallback
 
 app = FastAPI()
 
@@ -24,6 +25,7 @@ current_data = {
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+# given a list of players, returns a dict with name: head image pairs
 async def request_heads(players):
     heads = {}
     for player in players:
@@ -32,74 +34,59 @@ async def request_heads(players):
         if uuid and name:
             head_url = f'https://mc-heads.net/avatar/{uuid}/24'
             heads[name] = head_url
-            print(f"  - Added head for {name}: {head_url}")
+        else:
+            heads[name] = f'https://mc-heads.net/avatar/%7Buuid%7D/24'
     return heads
 
 
+# requesting data for specified server using mcsrvstat public API
 async def fetch_data_loop():
     async with httpx.AsyncClient() as client:
         while True:
             try:
-                print(f"\n{'='*50}")
                 print(f"Fetching data for: {SERVER_ADDRESS}")
                 
-                # Fixed the f-string formatting
                 response = await client.get(f'https://api.mcsrvstat.us/3/{SERVER_ADDRESS}')
                 stats_dict = response.json()
-                
-                # Log the raw response for debugging
-                print(f"Raw API Response:")
-                print(json.dumps(stats_dict, indent=2))
                 
                 reached = stats_dict.get('debug', {}).get('ping', False)
                 
                 if reached:   
-                    print("✓ SERVER REACHED")
                     online = stats_dict.get('online', False)
                     
                     if online:
-                        print("✓ SERVER ONLINE")
                         players_data = stats_dict.get('players', {})
                         players_list = players_data.get('list', [])
                         player_count = stats_dict.get('players').get('online')
                         
-                        print(f"Players found: {len(players_list)}")
                         if players_list:
-                            print("Player details:")
-                            for player in players_list:
-                                print(f"  - {player.get('name')} (UUID: {player.get('uuid')})")
-                        
-                        # Fetch player heads
-                        print("Fetching player heads...")
-                        heads = await request_heads(players_list)
-                        
+                            heads = await request_heads(players_list)
+                            current_data['heads'] = heads
+                            print(f"  Heads: {current_data['heads']}")
+
                         # Update current_data
                         current_data['players'] = players_list
-                        current_data['heads'] = heads
                         current_data['online'] = True
                         current_data['player_count'] = player_count
                         
-                        print(f"✓ Updated current_data with {len(players_list)} players")
+                        print(f"Updated current_data with {player_count} players")
                         
                     else:
-                        print("✗ SERVER OFFLINE (reached but not accepting connections)")
+                        print("SERVER OFFLINE (reached but not accepting connections)")
                         current_data['online'] = False
                         current_data['players'] = []
-                        current_data['heads'] = {}
                         
                 else:
-                    print("✗ SERVER NOT REACHABLE (does not exist or is not accessible)")
+                    print("SERVER NOT REACHABLE (does not exist or is not accessible)")
                     current_data['online'] = False
                     current_data['players'] = []
-                    current_data['heads'] = {}
                 
                 print(f"\nCurrent state:")
                 print(f"  Online: {current_data['online']}")
-                print(f"  Players: {len(current_data.get('players', []))}")
-                print(f"  Heads: {len(current_data.get('heads', {}))}")
+                print(f"  Players: {player_count}")
                 
             except Exception as e:
-                print(f"✗ ERROR during fetch: {e}")
+                print(f"ERROR during fetch: {e}")
                 import traceback
                 traceback.print_exc()
                 
@@ -119,12 +106,14 @@ async def startup_event():
     asyncio.create_task(fetch_data_loop())
 
 
+# data endpoint used by updateDisplay function in 'index.html'
 @app.get("/data")
 async def get_current_data():
-    print(f"\n[/data endpoint called] Returning: {current_data}")
+    print(f"\n[data endpoint called] Returning: {current_data}")
     return current_data
 
 
+# home page endpoint
 @app.get("/", response_class=HTMLResponse)
 async def home():
     # Serve your HTML page

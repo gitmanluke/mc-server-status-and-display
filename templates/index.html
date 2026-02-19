@@ -48,18 +48,18 @@
             align-items: center;
             margin-bottom: 20px;
             padding: 10px 15px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 5px;
         }
         
         .status-indicator {
             font-size: 14px;
             opacity: 0.8;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         
         .player-count {
             font-size: 16px;
             font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         
         .players-container {
@@ -146,7 +146,8 @@
                     const playerCount = data.player_count
                     countEl.textContent = `Players: ${playerCount}`;
                     
-                    if (data.players) {
+                    if (data.players && data.players.length > 0) {
+                        containerEl.style.display = 'block';
                         containerEl.innerHTML = data.players
                             .map(player => {
                                 const headUrl = data.heads[player.name] || '';
@@ -157,12 +158,14 @@
                             })
                             .join('');
                     } else {
+                        containerEl.style.display = 'none';
                         containerEl.innerHTML = '';
                     }
                 } else {
                     bodyEl.className = 'offline';
                     statusEl.textContent = '● Offline';
                     countEl.textContent = 'Players: 0';
+                    containerEl.style.display = 'none';
                     containerEl.innerHTML = '';
                 }
             } catch (error) {

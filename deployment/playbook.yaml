@@ -1,51 +1,59 @@
 ---
-- name: deploy server
+- name: Deploy Minecraft Server Monitor
   hosts: all
+  become: true
 
   tasks:
-  - name: Update apt cache and install required packages
-    apt:
-      name:
-        - git
-        - python3-venv
-        - unclutter
-      state: present
-      update_cache: yes
-    become: true
+    - name: Update apt cache and install required packages
+      apt:
+        name:
+          - git
+          - python3-venv
+          - unclutter
+          - chromium
+        state: present
+        update_cache: yes
 
-  - name: Clone Git Repo
-    ansible.builtin.git:
-      repo: 'https://github.com/gitmanluke/mc-server-status-and-display.git'
-      dest: /home/pi/minecraft-monitor
+    - name: Clone or update Git repository
+      git:
+        repo: 'https://github.com/gitmanluke/mc-server-status-and-display.git'
+        dest: /home/{{ ansible_user }}/minecraft-monitor
+        update: yes
 
-  - name: Deploy systemd service
-    template:
-      src: templates/minecraft-monitor_service.j2
-      dest: /etc/systemd/system/minecraft-monitor.service
-    become: true
+    - name: Create Python virtual environment
+      command: python3 -m venv /home/{{ ansible_user }}/minecraft-monitor/venv
+      args:
+        creates: /home/{{ ansible_user }}/minecraft-monitor/venv/bin/activate
 
-  - name: Enable and start service
-    systemd:
-      name: minecraft-monitor
-      enabled: yes
-      state: started
-      daemon_reload: yes
-    become: true
+    - name: Install Python packages from requirements.txt
+      pip:
+        requirements: /home/{{ ansible_user }}/minecraft-monitor/requirements.txt
+        virtualenv: /home/{{ ansible_user }}/minecraft-monitor/venv
 
-  - name: Create Python virtual environment
-    command: python3 -m venv /home/pi/minecraft-monitor/venv
-    args:
-      creates: "/home/pi/minecraft-monitor/venv/bin/activate"
+    - name: Deploy FastAPI systemd service
+      template:
+        src: templates/minecraft-monitor.service.j2
+        dest: /etc/systemd/system/minecraft-monitor.service
+        mode: '0644'
 
-  - name: Install Python packages from requirements.txt
-    pip:
-      requirements: /home/pi/minecraft-monitor/requirements.txt
-      virtualenv: /home/pi/minecraft-monitor/venv
+    - name: Deploy Chromium kiosk systemd service
+      template:
+        src: templates/chromium-kiosk.service.j2
+        dest: /etc/systemd/system/chromium-kiosk.service
+        mode: '0644'
 
-  - name: Configure Chromium kiosk autostart
-    lineinfile:
-      path: /home/pi/.config/lxsession/LXDE-pi/autostart
-      line: '@chromium-browser --kiosk --noerrdialogs --disable-infobars --no-first-run --check-for-update-interval=31536000 http://localhost:8000'
-      create: yes
-    become: true
-    become_user: pi
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start FastAPI service
+      systemd:
+        name: minecraft-monitor
+        enabled: yes
+        state: restarted
+
+    - name: Enable and start Chromium kiosk service
+      systemd:
+        name: chromium-kiosk
+        enabled: yes
+        state: restarted

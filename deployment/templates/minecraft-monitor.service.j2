@@ -1,11 +1,15 @@
 [Unit]
 Description=Minecraft Server Monitor
+After=network.target
 
 [Service]
-Environment="SERVER_ADDRESS={{ server_ip }}"
-ExecStart={{ venv_path }}/bin/uvicorn app:app --host 0.0.0.0
-WorkingDirectory={{ app_path }}
+Type=simple
+User={{ ansible_user }}
+WorkingDirectory=/home/{{ ansible_user }}/minecraft-monitor
+Environment="SERVER_ADDRESS={{ server_address }}"
+ExecStart=/home/{{ ansible_user }}/minecraft-monitor/venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
 Restart=always
+RestartSec=10
 
 [Install]
 WantedBy=multi-user.target

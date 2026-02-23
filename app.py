@@ -1,12 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from mcstatus import JavaServer
 import asyncio
 import httpx
-import requests
-import json
-import time
 import os
 
 SERVER_ADDRESS = os.getenv('SERVER_ADDRESS', 'hypixel.net')  # default fallback

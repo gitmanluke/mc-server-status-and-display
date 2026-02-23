@@ -1,0 +1,16 @@
+[Unit]
+Description=Chromium Kiosk Mode
+After=graphical.target minecraft-monitor.service
+Wants=graphical.target
+
+[Service]
+Type=simple
+User={{ ansible_user }}
+Environment=DISPLAY=:0
+Environment=XAUTHORITY=/home/{{ ansible_user }}/.Xauthority
+ExecStart=/usr/bin/chromium --kiosk --noerrdialogs --disable-infobars --no-first-run --check-for-update-interval=31536000 http://localhost:8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=graphical.target

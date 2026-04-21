@@ -1,0 +1,22 @@
+---
+- name: Initial Screen Setup (MHS35)
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: Remove existing LCD-show directory
+      file:
+        path: /home/{{ ansible_user }}/LCD-show
+        state: absent
+
+    - name: Clone LCD-show repository
+      git:
+        repo: 'https://github.com/goodtft/LCD-show.git'
+        dest: /home/{{ ansible_user }}/LCD-show
+
+    # The MHS35-show script triggers a reboot, so we run it async and do not poll.
+    # Ansible will not report success/failure; check the Pi console after reboot.
+    - name: Run MHS35 display driver installation
+      shell: cd /home/{{ ansible_user }}/LCD-show && sudo ./MHS35-show
+      async: 60
+      poll: 0

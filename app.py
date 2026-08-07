@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 SERVER_ADDRESS = os.getenv('SERVER_ADDRESS', 'hypixel.net')
+MAX_DISPLAYED_PLAYERS = 5
 
 current_data = {
     'address': SERVER_ADDRESS,
@@ -29,10 +30,12 @@ def request_heads(players):
     for player in players:
         uuid = player.get('uuid')
         name = player.get('name')
-        if uuid and name:
+        if not name:
+            continue
+        if uuid:
             heads[name] = f'https://mc-heads.net/avatar/{uuid}/24'
         else:
-            heads[name] = f'https://mc-heads.net/avatar/%7Buuid%7D/24'
+            heads[name] = f'https://mc-heads.net/avatar/{name}/24'
     return heads
 
 
@@ -66,8 +69,10 @@ async def fetch_data_loop():
 
                     if online:
                         players_data = stats_dict.get('players', {})
-                        players_list = players_data.get('list', [])
                         player_count = players_data.get('online', 0)
+                        players_list = [
+                            p for p in players_data.get('list', []) if p.get('name')
+                        ][:MAX_DISPLAYED_PLAYERS]
 
                         current_data['heads'] = {}
                         if players_list:

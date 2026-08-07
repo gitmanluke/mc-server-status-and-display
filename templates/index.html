@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=480, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Server Monitor</title>
     <link rel="stylesheet" href="/static/minecraft.css">
     <style>
@@ -14,11 +14,17 @@
 
         body {
             color: #ffffff;
-            padding: 20px;
-            height: 320px;
-            width: 480px;
-            overflow: hidden;
             transition: background-color 0.5s ease;
+        }
+
+        .dashboard {
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: clamp(24px, 5vw, 64px);
+            gap: clamp(16px, 3vh, 40px);
         }
 
         body.online {
@@ -34,9 +40,8 @@
         }
 
         .server-address {
-            font-size: 24px;
+            font-size: clamp(22px, 5vw, 56px);
             font-weight: bold;
-            margin-bottom: 20px;
             text-align: center;
             text-decoration: underline;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
@@ -46,18 +51,17 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding: 10px 15px;
+            padding: clamp(8px, 2vw, 20px) clamp(12px, 3vw, 28px);
         }
 
         .status-indicator {
-            font-size: 14px;
+            font-size: clamp(13px, 3vw, 28px);
             opacity: 0.8;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         .player-count {
-            font-size: 16px;
+            font-size: clamp(14px, 3.5vw, 32px);
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
@@ -65,62 +69,44 @@
         .players-container {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 5px;
-            padding: 15px;
-            max-height: 180px;
-            overflow-y: auto;
+            padding: clamp(10px, 2.5vw, 24px);
         }
 
         .player {
-            padding: 8px;
-            margin: 5px 0;
+            padding: clamp(6px, 1.5vw, 14px);
+            margin: clamp(4px, 1vw, 8px) 0;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: clamp(8px, 2vw, 20px);
             background: rgba(255, 255, 255, 0.1);
             border-radius: 3px;
         }
 
         .player img {
-            width: 24px;
-            height: 24px;
+            width: clamp(24px, 4vw, 48px);
+            height: clamp(24px, 4vw, 48px);
             image-rendering: pixelated;
             border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .player-name {
-            font-size: 16px;
+            font-size: clamp(14px, 3.5vw, 36px);
             font-weight: bold;
         }
 
-        /* Scrollbar styling */
-        .players-container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .players-container::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
-        }
-
-        .players-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.4);
-            border-radius: 4px;
-        }
-
-        .players-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.6);
-        }
     </style>
 </head>
 <body class="checking">
-    <div class="server-address" id="serverAddress">Loading...</div>
+    <div class="dashboard">
+        <div class="server-address" id="serverAddress">Loading...</div>
 
-    <div class="status-bar">
-        <div class="status-indicator" id="statusIndicator">● Checking...</div>
-        <div class="player-count" id="playerCount">Players: --</div>
+        <div class="status-bar">
+            <div class="status-indicator" id="statusIndicator">● Checking...</div>
+            <div class="player-count" id="playerCount">Players: --</div>
+        </div>
+
+        <div class="players-container" id="playersContainer"></div>
     </div>
-
-    <div class="players-container" id="playersContainer"></div>
 
     <script>
         const source = new EventSource('/stream');

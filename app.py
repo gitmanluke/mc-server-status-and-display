@@ -148,5 +148,5 @@ async def stream():
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
-    with open("templates/index.html") as f:
+    with open("templates/index.html", encoding="utf-8") as f:
         return f.read()

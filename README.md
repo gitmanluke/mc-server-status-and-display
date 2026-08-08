@@ -5,7 +5,7 @@ Easily check which of your friends are online with a clean graphical display usi
 
 ## Features
 Display whether server is online or offline  
-If online, display player count and a list of the usernames and corresponding heads of 27 players
+If online, display player count and a list of the usernames and corresponding heads of 27 players  
 Search bar for input of any public Minecraft server  
 Save a list of 5 most recently viewed servers for easy repeatable access 
 

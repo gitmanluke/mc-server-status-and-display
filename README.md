@@ -3,6 +3,13 @@ Need info about your Minecraft server fast?
 Easily check which of your friends are online with a clean graphical display using the MC Monitor  
 [Try it out for yourself here](https://mcmonitor.onrender.com)
 
+## Photos
+<div align="center">
+  <img src="photos/landingpage.png" alt="Alt text here" width="750">
+  <br>
+  <img src="photos/home.png" alt="Alt text here" width="750">
+</div>
+
 ## Features
 Display whether server is online or offline  
 If online, display player count and a list of the usernames and corresponding heads of 27 players  

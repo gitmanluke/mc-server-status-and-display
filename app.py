@@ -12,6 +12,15 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 SERVER_ADDRESS = os.getenv('SERVER_ADDRESS', 'hypixel.net')
+MOCK_MODE = os.getenv('MOCK_MODE', 'false').lower() == 'true'
+
+MOCK_PLAYERS = [
+    {"name": "Notch", "uuid": "069a79f4-44e9-4726-a5be-fca90e38aaf5"},
+    {"name": "Dream", "uuid": "ec70bcaf-702f-4bb8-b48d-276fa52a780c"},
+    {"name": "Grian", "uuid": "5f8eb73b-25be-4c5a-a50f-d27d65e30ca0"},
+    {"name": "Ph1LzA", "uuid": "84555089-add1-49b1-a26d-8021270a40f0"},
+    {"name": "xisumavoid", "uuid": "8d86df19-fa5c-4939-ac7c-3b90b2b6abb6"},
+]
 
 current_data = {
     'address': SERVER_ADDRESS,
@@ -50,6 +59,16 @@ async def broadcast():
 
 
 async def fetch_data_loop():
+    if MOCK_MODE:
+        logger.info("MOCK_MODE enabled — serving fake player data")
+        current_data['online'] = True
+        current_data['players'] = MOCK_PLAYERS
+        current_data['player_count'] = len(MOCK_PLAYERS)
+        current_data['heads'] = request_heads(MOCK_PLAYERS)
+        await broadcast()
+        while True:
+            await asyncio.sleep(3600)
+
     async with httpx.AsyncClient() as client:
         while True:
             player_count = 0

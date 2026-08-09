@@ -7,6 +7,7 @@ Type=simple
 User={{ ansible_user }}
 WorkingDirectory=/home/{{ ansible_user }}/minecraft-monitor
 Environment="SERVER_ADDRESS={{ server_address }}"
+Environment="MOCK_MODE={{ mock_mode | default(false) }}"
 ExecStart=/home/{{ ansible_user }}/minecraft-monitor/venv/bin/uvicorn app:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=10
